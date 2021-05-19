@@ -43,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
               DropdownSearch<String>(
                 validator: (v) => v == null ? "required field" : null,
                 hint: "Select a country",
-                mode: Mode.MENU,
+                mode: Mode.menu,
                 showSelectedItem: true,
                 items: ["Brazil", "Italia (Disabled)", "Tunisia", 'Canada'],
                 label: "Menu mode *",
@@ -92,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: DropdownSearch<String>(
                       validator: (v) => v == null ? "required field" : null,
                       hint: "Select a country",
-                      mode: Mode.MENU,
+                      mode: Mode.menu,
                       dropdownSearchDecoration: InputDecoration(
                         filled: true,
                         border: UnderlineInputBorder(
@@ -145,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Divider(),
               DropdownSearch<UserModel>(
                 searchBoxController: TextEditingController(text: 'Mrs'),
-                mode: Mode.BOTTOM_SHEET,
+                mode: Mode.bottomSheet,
                 maxHeight: 700,
                 isFilteredOnline: true,
                 showClearButton: true,
@@ -183,7 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
               ///BottomSheet Mode with no searchBox
               DropdownSearch<String>(
-                mode: Mode.BOTTOM_SHEET,
+                mode: Mode.bottomSheet,
                 items: [
                   "Brazil",
                   "Italia",

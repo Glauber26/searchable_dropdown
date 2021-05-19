@@ -2,41 +2,43 @@ library dropdown_search;
 
 import 'dart:async';
 
-import 'package:dropdown_search/src/popup_safearea.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'src/popupMenu.dart';
-import 'src/selectDialog.dart';
+import 'src/popup_menu.dart';
+import 'src/popup_safearea.dart';
+import 'src/select_dialog.dart';
 
 export 'src/popup_safearea.dart';
 
-typedef Future<List<T>> DropdownSearchOnFind<T>(String text);
-typedef String DropdownSearchItemAsString<T>(T item);
-typedef bool DropdownSearchFilterFn<T>(T item, String filter);
-typedef bool DropdownSearchCompareFn<T>(T item, T? selectedItem);
-typedef Widget DropdownSearchBuilder<T>(
+typedef DropdownSearchOnFind<T> = Future<List<T>> Function(String text);
+typedef DropdownSearchItemAsString<T> = String Function(T item);
+typedef DropdownSearchFilterFn<T> = bool Function(T item, String filter);
+typedef DropdownSearchCompareFn<T> = bool Function(T item, T? selectedItem);
+typedef DropdownSearchBuilder<T> = Widget Function(
     BuildContext context, T? selectedItem, String itemAsString);
-typedef Widget DropdownSearchPopupItemBuilder<T>(
+typedef DropdownSearchPopupItemBuilder<T> = Widget Function(
   BuildContext context,
   T item,
   bool isSelected,
 );
-typedef bool DropdownSearchPopupItemEnabled<T>(T item);
-typedef Widget ErrorBuilder<T>(
+typedef DropdownSearchPopupItemEnabled<T> = bool Function(T item);
+typedef ErrorBuilder<T> = Widget Function(
     BuildContext context, String? searchEntry, dynamic exception);
-typedef Widget EmptyBuilder<T>(BuildContext context, String? searchEntry);
-typedef Widget LoadingBuilder<T>(BuildContext context, String? searchEntry);
-typedef Widget IconButtonBuilder(BuildContext context);
-typedef Future<bool?> BeforeChange<T>(T prevItem, T nextItem);
+typedef EmptyBuilder<T> = Widget Function(
+    BuildContext context, String? searchEntry);
+typedef LoadingBuilder<T> = Widget Function(
+    BuildContext context, String? searchEntry);
+typedef IconButtonBuilder = Widget Function(BuildContext context);
+typedef BeforeChange<T> = Future<bool?> Function(T prevItem, T nextItem);
 
-typedef Widget FavoriteItemsBuilder<T>(BuildContext context, T item);
+typedef FavoriteItemsBuilder<T> = Widget Function(BuildContext context, T item);
 
 ///[items] are the original item from [items] or/and [onFind]
-typedef List<T> FavoriteItems<T>(List<T> items);
+typedef FavoriteItems<T> = List<T> Function(List<T> items);
 
-enum Mode { DIALOG, BOTTOM_SHEET, MENU }
+enum Mode { dialog, bottomSheet, menu }
 
 class DropdownSearch<T> extends StatefulWidget {
   ///DropDownSearch label
@@ -59,6 +61,9 @@ class DropdownSearch<T> extends StatefulWidget {
 
   ///selected item
   final T? selectedItem;
+
+  ///select item text style
+  final TextStyle? selectedTextStyle;
 
   ///function that returns item from API
   final DropdownSearchOnFind<T>? onFind;
@@ -122,6 +127,8 @@ class DropdownSearch<T> extends StatefulWidget {
 
   ///custom shape for the popup
   final ShapeBorder? popupShape;
+
+  final ScrollPhysics? popupPhysics;
 
   final AutovalidateMode autoValidateMode;
 
@@ -190,30 +197,35 @@ class DropdownSearch<T> extends StatefulWidget {
   ///set properties of popup safe area
   final PopupSafeArea popupSafeArea;
 
+  final Widget? onLoadingWidget;
+
+  final bool? isLoading;
+
   DropdownSearch({
     Key? key,
-    this.onSaved,
-    this.validator,
-    this.autoValidateMode = AutovalidateMode.disabled,
-    this.onChanged,
-    this.mode = Mode.DIALOG,
     this.label,
+    this.onLoadingWidget,
+    this.isLoading = false,
     this.hint,
+    this.showSearchBox = false,
     this.isFilteredOnline = false,
-    this.popupTitle,
+    this.showClearButton = false,
     this.items,
     this.selectedItem,
+    this.selectedTextStyle,
     this.onFind,
+    this.onChanged,
     this.dropdownBuilder,
     this.popupItemBuilder,
-    this.showSearchBox = false,
-    this.showClearButton = false,
     this.searchBoxDecoration,
     this.popupBackgroundColor,
-    this.enabled = true,
-    this.maxHeight,
-    this.filterFn,
+    this.popupTitle,
     this.itemAsString,
+    this.filterFn,
+    this.enabled = true,
+    this.mode = Mode.dialog,
+    this.maxHeight,
+    this.dialogMaxWidth,
     this.showSelectedItem = false,
     this.compareFn,
     this.dropdownSearchDecoration,
@@ -221,26 +233,29 @@ class DropdownSearch<T> extends StatefulWidget {
     this.loadingBuilder,
     this.errorBuilder,
     this.autoFocusSearchBox = false,
-    this.dialogMaxWidth,
+    this.popupShape,
+    this.autoValidateMode = AutovalidateMode.disabled,
+    this.onSaved,
+    this.validator,
     this.clearButton,
     this.clearButtonBuilder,
     this.dropDownButton,
+    this.searchBoxStyle,
     this.dropdownButtonBuilder,
     this.showAsSuffixIcons = false,
     this.dropdownBuilderSupportsNullItem = false,
-    this.popupShape,
     this.popupItemDisabled,
     this.popupBarrierColor,
-    this.onPopupDismissed,
     this.searchBoxController,
+    this.onPopupDismissed,
     this.searchDelay,
     this.onBeforeChange,
+    this.showFavoriteItems = false,
     this.favoriteItemBuilder,
     this.favoriteItems,
-    this.showFavoriteItems = false,
     this.favoriteItemsAlignment = MainAxisAlignment.start,
-    this.searchBoxStyle,
     this.popupSafeArea = const PopupSafeArea(),
+    this.popupPhysics,
   })  : assert(!showSelectedItem || T == String || compareFn != null),
         super(key: key);
 
@@ -265,6 +280,11 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
     if (oldSelectedItem != newSelectedItem) {
       _selectedItemNotifier.value = newSelectedItem;
     }
+
+    if (_selectedItemAsString(newSelectedItem).isEmpty) {
+      _selectedItemNotifier.value = newSelectedItem;
+    }
+
     super.didUpdateWidget(oldWidget);
   }
 
@@ -286,7 +306,6 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
 
   Widget _defaultSelectItemWidget(T? data) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Expanded(
           child: widget.dropdownBuilder != null
@@ -295,8 +314,13 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
                   data,
                   _selectedItemAsString(data),
                 )
-              : Text(_selectedItemAsString(data),
-                  style: Theme.of(context).textTheme.subtitle1),
+              : (widget.isLoading! && widget.onLoadingWidget != null)
+                  ? widget.onLoadingWidget!
+                  : Text(
+                      _selectedItemAsString(data),
+                      style: widget.selectedTextStyle ??
+                          Theme.of(context).textTheme.subtitle1,
+                    ),
         ),
         if (!widget.showAsSuffixIcons) _manageTrailingIcons(data),
       ],
@@ -310,7 +334,7 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
       validator: widget.validator,
       autovalidateMode: widget.autoValidateMode,
       initialValue: widget.selectedItem,
-      builder: (FormFieldState<T> state) {
+      builder: (state) {
         if (state.value != value) {
           WidgetsBinding.instance!.addPostFrameCallback((_) {
             state.didChange(value);
@@ -351,7 +375,7 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
   ///function that return the String value of an object
   String _selectedItemAsString(T? data) {
     if (data == null) {
-      return "";
+      return '';
     } else if (widget.itemAsString != null) {
       return widget.itemAsString!(data);
     } else {
@@ -487,6 +511,7 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
     return SelectDialog<T>(
       searchBoxStyle: widget.searchBoxStyle,
       popupTitle: widget.popupTitle,
+      popupPhysics: widget.popupPhysics,
       maxHeight: widget.maxHeight ?? defaultHeight,
       isFilteredOnline: widget.isFilteredOnline,
       itemAsString: widget.itemAsString,
@@ -554,9 +579,9 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
   Future<T?> _selectSearchMode(T? data) async {
     _handleFocus(true);
     T? selectedItem;
-    if (widget.mode == Mode.MENU) {
+    if (widget.mode == Mode.menu) {
       selectedItem = await _openMenu(data);
-    } else if (widget.mode == Mode.BOTTOM_SHEET) {
+    } else if (widget.mode == Mode.bottomSheet) {
       selectedItem = await _openBottomSheet(data);
     } else {
       selectedItem = await _openSelectDialog(data);
