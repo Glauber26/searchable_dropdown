@@ -7,6 +7,7 @@ import '../dropdown_search.dart';
 class SelectDialog<T> extends StatefulWidget {
   final T? selectedValue;
   final List<T>? items;
+  final EdgeInsets? listPadding;
   final bool showSearchBox;
   final bool isFilteredOnline;
   final ValueChanged<T>? onChanged;
@@ -88,6 +89,7 @@ class SelectDialog<T> extends StatefulWidget {
     this.favoriteItemsAlignment = MainAxisAlignment.start,
     this.favoriteItems,
     this.popupPhysics,
+    this.listPadding = EdgeInsets.zero,
   }) : super(key: key);
 
   @override
@@ -164,16 +166,18 @@ class _SelectDialogState<T> extends State<SelectDialog<T>> {
                         );
                       }
                     }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: widget.popupPhysics,
-                      padding: EdgeInsets.zero,
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        var item = snapshot.data![index];
-                        return _itemWidget(item);
-                      },
-                    );
+                    return Padding(
+                        padding: widget.listPadding!,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          physics: widget.popupPhysics,
+                          padding: EdgeInsets.zero,
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            var item = snapshot.data![index];
+                            return _itemWidget(item);
+                          },
+                        ));
                   },
                 ),
                 _loadingWidget()

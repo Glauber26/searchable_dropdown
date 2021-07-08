@@ -77,6 +77,9 @@ class DropdownSearch<T> extends StatefulWidget {
   ///to customize selected item
   final DropdownSearchPopupItemBuilder<T>? popupItemBuilder;
 
+  ///to customize popup list padding
+  final EdgeInsets? popupListPadding;
+
   ///decoration for search box
   final InputDecoration? searchBoxDecoration;
 
@@ -217,6 +220,7 @@ class DropdownSearch<T> extends StatefulWidget {
     this.onChanged,
     this.dropdownBuilder,
     this.popupItemBuilder,
+    this.popupListPadding,
     this.searchBoxDecoration,
     this.popupBackgroundColor,
     this.popupTitle,
@@ -538,6 +542,7 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
       favoriteItems: widget.favoriteItems,
       favoriteItemBuilder: widget.favoriteItemBuilder,
       favoriteItemsAlignment: widget.favoriteItemsAlignment,
+      listPadding: widget.popupListPadding,
     );
   }
 
