@@ -204,11 +204,11 @@ class DropdownSearch<T> extends StatefulWidget {
 
   final bool? isLoading;
 
+  final ScrollController? scrollController;
+
   DropdownSearch({
     Key? key,
     this.label,
-    this.onLoadingWidget,
-    this.isLoading = false,
     this.hint,
     this.showSearchBox = false,
     this.isFilteredOnline = false,
@@ -238,6 +238,7 @@ class DropdownSearch<T> extends StatefulWidget {
     this.errorBuilder,
     this.autoFocusSearchBox = false,
     this.popupShape,
+    this.popupPhysics,
     this.autoValidateMode = AutovalidateMode.disabled,
     this.onSaved,
     this.validator,
@@ -259,7 +260,9 @@ class DropdownSearch<T> extends StatefulWidget {
     this.favoriteItems,
     this.favoriteItemsAlignment = MainAxisAlignment.start,
     this.popupSafeArea = const PopupSafeArea(),
-    this.popupPhysics,
+    this.onLoadingWidget,
+    this.isLoading = false,
+    this.scrollController,
   })  : assert(!showSelectedItem || T == String || compareFn != null),
         super(key: key);
 
@@ -513,6 +516,7 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
 
   SelectDialog<T> _selectDialogInstance(T? data, {double? defaultHeight}) {
     return SelectDialog<T>(
+      scrollController: widget.scrollController,
       searchBoxStyle: widget.searchBoxStyle,
       popupTitle: widget.popupTitle,
       popupPhysics: widget.popupPhysics,

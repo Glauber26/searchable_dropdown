@@ -21,6 +21,7 @@ class SelectDialog<T> extends StatefulWidget {
   final double? maxHeight;
   final double? dialogMaxWidth;
   final Widget? popupTitle;
+  final ScrollController? scrollController;
 
   final bool showSelectedItem;
   final DropdownSearchCompareFn<T>? compareFn;
@@ -62,6 +63,7 @@ class SelectDialog<T> extends StatefulWidget {
     Key? key,
     this.selectedValue,
     this.items,
+    this.listPadding = EdgeInsets.zero,
     this.showSearchBox = false,
     this.isFilteredOnline = false,
     this.onChanged,
@@ -75,6 +77,7 @@ class SelectDialog<T> extends StatefulWidget {
     this.maxHeight,
     this.dialogMaxWidth,
     this.popupTitle,
+    this.scrollController,
     this.showSelectedItem = false,
     this.compareFn,
     this.itemDisabled,
@@ -89,7 +92,6 @@ class SelectDialog<T> extends StatefulWidget {
     this.favoriteItemsAlignment = MainAxisAlignment.start,
     this.favoriteItems,
     this.popupPhysics,
-    this.listPadding = EdgeInsets.zero,
   }) : super(key: key);
 
   @override
@@ -103,11 +105,13 @@ class _SelectDialogState<T> extends State<SelectDialog<T>> {
   final ValueNotifier<bool> _loadingNotifier = ValueNotifier(false);
   final List<T> _items = <T>[];
   late Debouncer _debouncer;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
     _debouncer = Debouncer(delay: widget.searchDelay);
+    _scrollController = widget.scrollController ?? ScrollController();
 
     Future.delayed(
       Duration.zero,
@@ -168,15 +172,20 @@ class _SelectDialogState<T> extends State<SelectDialog<T>> {
                     }
                     return Padding(
                         padding: widget.listPadding!,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          physics: widget.popupPhysics,
-                          padding: EdgeInsets.zero,
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (context, index) {
-                            var item = snapshot.data![index];
-                            return _itemWidget(item);
-                          },
+                        child: Scrollbar(
+                          controller: _scrollController,
+                          isAlwaysShown: true,
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            shrinkWrap: true,
+                            physics: widget.popupPhysics,
+                            padding: EdgeInsets.zero,
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              var item = snapshot.data![index];
+                              return _itemWidget(item);
+                            },
+                          ),
                         ));
                   },
                 ),
