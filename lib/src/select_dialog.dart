@@ -138,61 +138,88 @@ class _SelectDialogState<T> extends State<SelectDialog<T>> {
   Widget build(BuildContext context) {
     var deviceSize = MediaQuery.of(context).size;
     var isTablet = deviceSize.width > deviceSize.height;
-    var maxHeight = deviceSize.height * (isTablet ? .8 : .6);
+    var maxHeight = deviceSize.height * (isTablet ? .8 : .5);
     var maxWidth = deviceSize.width * (isTablet ? .7 : .9);
 
     return Container(
       width: widget.dialogMaxWidth ?? maxWidth,
-      constraints: BoxConstraints(maxHeight: widget.maxHeight ?? maxHeight),
+      constraints: !widget.showSearchBox
+          ? null
+          : BoxConstraints(
+              maxHeight: maxHeight,
+            ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           _searchField(),
           if (widget.showFavoriteItems == true) _favoriteItemsWidget(),
-          Expanded(
-            child: Stack(
-              children: <Widget>[
-                StreamBuilder<List<T>>(
+          widget.showSearchBox
+              ? Expanded(
+                  child: Stack(
+                    children: <Widget>[
+                      StreamBuilder<List<T>>(
+                        stream: _itemsStream.stream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return _errorWidget(snapshot.error);
+                          } else if (!snapshot.hasData) {
+                            return _loadingWidget();
+                          } else if (snapshot.data!.isEmpty) {
+                            if (widget.emptyBuilder != null) {
+                              return widget.emptyBuilder!(
+                                  context, widget.searchBoxController?.text);
+                            } else {
+                              return const Center(
+                                child: Text('No data found'),
+                              );
+                            }
+                          }
+                          return Padding(
+                              padding: widget.listPadding!,
+                              child: Scrollbar(
+                                controller: _scrollController,
+                                isAlwaysShown: true,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  shrinkWrap: true,
+                                  physics: widget.popupPhysics,
+                                  padding: EdgeInsets.zero,
+                                  itemCount: snapshot.data!.length,
+                                  itemBuilder: (context, index) {
+                                    var item = snapshot.data![index];
+                                    return _itemWidget(item);
+                                  },
+                                ),
+                              ));
+                        },
+                      ),
+                      _loadingWidget()
+                    ],
+                  ),
+                )
+              : StreamBuilder<List<T>>(
                   stream: _itemsStream.stream,
                   builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return _errorWidget(snapshot.error);
-                    } else if (!snapshot.hasData) {
-                      return _loadingWidget();
-                    } else if (snapshot.data!.isEmpty) {
-                      if (widget.emptyBuilder != null) {
-                        return widget.emptyBuilder!(
-                            context, widget.searchBoxController?.text);
-                      } else {
-                        return const Center(
-                          child: Text('No data found'),
-                        );
-                      }
-                    }
                     return Padding(
-                        padding: widget.listPadding!,
-                        child: Scrollbar(
+                      padding: widget.listPadding!,
+                      child: Scrollbar(
+                        controller: _scrollController,
+                        isAlwaysShown: true,
+                        child: ListView.builder(
                           controller: _scrollController,
-                          isAlwaysShown: true,
-                          child: ListView.builder(
-                            controller: _scrollController,
-                            shrinkWrap: true,
-                            physics: widget.popupPhysics,
-                            padding: EdgeInsets.zero,
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              var item = snapshot.data![index];
-                              return _itemWidget(item);
-                            },
-                          ),
-                        ));
+                          shrinkWrap: true,
+                          physics: widget.popupPhysics,
+                          padding: EdgeInsets.zero,
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            var item = snapshot.data![index];
+                            return _itemWidget(item);
+                          },
+                        ),
+                      ),
+                    );
                   },
                 ),
-                _loadingWidget()
-              ],
-            ),
-          ),
         ],
       ),
     );
