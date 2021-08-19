@@ -7,7 +7,9 @@ import '../dropdown_search.dart';
 class SelectDialog<T> extends StatefulWidget {
   final T? selectedValue;
   final List<T>? items;
+  final EdgeInsets? searchBoxPadding;
   final EdgeInsets? listPadding;
+  final EdgeInsets? dialogPadding;
   final bool showSearchBox;
   final bool isFilteredOnline;
   final ValueChanged<T>? onChanged;
@@ -63,7 +65,9 @@ class SelectDialog<T> extends StatefulWidget {
     Key? key,
     this.selectedValue,
     this.items,
-    this.listPadding = EdgeInsets.zero,
+    this.searchBoxPadding,
+    this.listPadding,
+    this.dialogPadding,
     this.showSearchBox = false,
     this.isFilteredOnline = false,
     this.onChanged,
@@ -143,6 +147,7 @@ class _SelectDialogState<T> extends State<SelectDialog<T>> {
 
     return Container(
       width: widget.dialogMaxWidth ?? maxWidth,
+      padding: widget.dialogPadding,
       constraints: !widget.showSearchBox
           ? null
           : BoxConstraints(
@@ -175,22 +180,23 @@ class _SelectDialogState<T> extends State<SelectDialog<T>> {
                             }
                           }
                           return Padding(
-                              padding: widget.listPadding!,
-                              child: Scrollbar(
+                            padding: widget.listPadding ?? EdgeInsets.zero,
+                            child: Scrollbar(
+                              controller: _scrollController,
+                              isAlwaysShown: true,
+                              child: ListView.builder(
                                 controller: _scrollController,
-                                isAlwaysShown: true,
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  shrinkWrap: true,
-                                  physics: widget.popupPhysics,
-                                  padding: EdgeInsets.zero,
-                                  itemCount: snapshot.data!.length,
-                                  itemBuilder: (context, index) {
-                                    var item = snapshot.data![index];
-                                    return _itemWidget(item);
-                                  },
-                                ),
-                              ));
+                                shrinkWrap: true,
+                                physics: widget.popupPhysics,
+                                padding: EdgeInsets.zero,
+                                itemCount: snapshot.data!.length,
+                                itemBuilder: (context, index) {
+                                  var item = snapshot.data![index];
+                                  return _itemWidget(item);
+                                },
+                              ),
+                            ),
+                          );
                         },
                       ),
                       _loadingWidget()
@@ -201,7 +207,7 @@ class _SelectDialogState<T> extends State<SelectDialog<T>> {
                   stream: _itemsStream.stream,
                   builder: (context, snapshot) {
                     return Padding(
-                      padding: widget.listPadding!,
+                      padding: widget.listPadding ?? EdgeInsets.zero,
                       child: Scrollbar(
                         controller: _scrollController,
                         isAlwaysShown: true,
@@ -408,7 +414,7 @@ class _SelectDialogState<T> extends State<SelectDialog<T>> {
           widget.popupTitle ?? const SizedBox.shrink(),
           if (widget.showSearchBox)
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: widget.searchBoxPadding ?? const EdgeInsets.all(8.0),
               child: TextField(
                 style: widget.searchBoxStyle,
                 controller: widget.searchBoxController,
