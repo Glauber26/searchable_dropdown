@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import 'src/popup_menu.dart';
 import 'src/popup_safearea.dart';
@@ -206,6 +207,12 @@ class DropdownSearch<T> extends StatefulWidget {
   ///set properties of popup safe area
   final PopupSafeArea popupSafeArea;
 
+  ///set properties of is dismissible
+  final bool? isDismissible;
+
+  ///set properties of is custom child
+  final Widget? child;
+
   final Widget? onLoadingWidget;
 
   final bool? isLoading;
@@ -271,6 +278,8 @@ class DropdownSearch<T> extends StatefulWidget {
     this.onLoadingWidget,
     this.isLoading = false,
     this.scrollController,
+    this.isDismissible,
+    this.child,
   })  : assert(!showSelectedItem || T == String || compareFn != null),
         super(key: key);
 
@@ -458,30 +467,18 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
 
   ///open BottomSheet (Dialog mode)
   Future<T?> _openBottomSheet(T? data) {
-    return showModalBottomSheet<T>(
-        barrierColor: widget.popupBarrierColor,
-        backgroundColor: Colors.transparent,
-        isScrollControlled: true,
-        shape: widget.popupShape,
-        context: context,
-        builder: (ctx) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            builder: (_, child) {
-              return SafeArea(
-                top: widget.popupSafeArea.top,
-                bottom: widget.popupSafeArea.bottom,
-                left: widget.popupSafeArea.left,
-                right: widget.popupSafeArea.right,
-                child: Container(
-                  color:
-                      widget.popupBackgroundColor ?? Theme.of(ctx).canvasColor,
-                  child: _selectDialogInstance(data, defaultHeight: 350),
-                ),
-              );
-            },
-          );
-        });
+    return showMaterialModalBottomSheet(
+      expand: false,
+      isDismissible: widget.isDismissible ?? false,
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => WillPopScope(
+        onWillPop: () async {
+          return widget.isDismissible ?? false;
+        },
+        child: widget.child ?? Container(),
+      ),
+    );
   }
 
   ///openMenu

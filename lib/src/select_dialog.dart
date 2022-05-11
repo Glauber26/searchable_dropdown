@@ -216,7 +216,7 @@ class _SelectDialogState<T> extends State<SelectDialog<T>> {
                           shrinkWrap: true,
                           physics: widget.popupPhysics,
                           padding: EdgeInsets.zero,
-                          itemCount: snapshot.data!.length,
+                          itemCount: snapshot.data != null ? snapshot.data!.length : 0,
                           itemBuilder: (context, index) {
                             var item = snapshot.data![index];
                             return _itemWidget(item);
