@@ -457,20 +457,33 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
       shape: widget.popupShape,
       context: context,
       builder: (ctx) {
-        return Container(
-          color: Colors.transparent, //could change this to Color(0xFF737373),
-          //so you don't have to change MaterialApp canvasColor
-          child: Container(
-            decoration: new BoxDecoration(
-              color: Colors.white,
-              borderRadius: new BorderRadius.only(
-                topLeft: Radius.circular(widget.radiusBottomSheet ?? 0),
-                topRight: Radius.circular(widget.radiusBottomSheet ?? 0),
-              ),
-            ),
-            child: Container(
-              color: Colors.transparent,
-              child: _selectDialogInstance(data, defaultHeight: 350),
+        return AnimatedPadding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.decelerate,
+          child: new Container(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Container(
+                  color: Colors.transparent, //could change this to Color(0xFF737373),
+                  //so you don't have to change MaterialApp canvasColor
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    decoration: new BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: new BorderRadius.only(
+                        topLeft: Radius.circular(widget.radiusBottomSheet ?? 0),
+                        topRight: Radius.circular(widget.radiusBottomSheet ?? 0),
+                      ),
+                    ),
+                    child: Container(
+                      color: Colors.transparent,
+                      child: _selectDialogInstance(data, defaultHeight: 350),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );

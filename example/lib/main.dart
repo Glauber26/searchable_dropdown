@@ -30,6 +30,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        resizeToAvoidBottomInset: false,
       appBar: AppBar(title: Text("DropdownSearch Demo")),
       body: Padding(
         padding: const EdgeInsets.all(25),
