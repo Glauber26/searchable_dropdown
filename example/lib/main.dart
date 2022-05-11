@@ -193,6 +193,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   'France',
                   'Belgique'
                 ],
+                radiusBottomSheet: 16,
                 label: "Custom BottomShet mode",
                 onChanged: print,
                 selectedItem: "Brazil",
