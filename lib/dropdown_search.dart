@@ -476,9 +476,74 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
         onWillPop: () async {
           return widget.isDismissible ?? false;
         },
-        child: widget.child ?? Container(),
+        child: Container(
+          decoration: BoxDecoration(
+            color: widget.popupBackgroundColor,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+            ),
+          ),
+          child: Column(
+            children: [
+              widget.child ?? MaterialApp(
+                debugShowCheckedModeBanner: false,
+                builder: (_, child) {
+                  return SafeArea(
+                    top: widget.popupSafeArea.top,
+                    bottom: widget.popupSafeArea.bottom,
+                    left: widget.popupSafeArea.left,
+                    right: widget.popupSafeArea.right,
+                    child: Container(
+                      color:
+                      widget.popupBackgroundColor ?? Colors.white,
+                      child: _selectDialogInstance(data, defaultHeight: 350),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        )
       ),
     );
+
+
+    /*Container(
+      decoration: BoxDecoration(
+        color: widget.popupBackgroundColor,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+        ),
+      ),
+      child: ,
+    )
+    */
+    return showModalBottomSheet<T>(
+        barrierColor: widget.popupBarrierColor,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        shape: widget.popupShape,
+        context: context,
+        builder: (ctx) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            builder: (_, child) {
+              return SafeArea(
+                top: widget.popupSafeArea.top,
+                bottom: widget.popupSafeArea.bottom,
+                left: widget.popupSafeArea.left,
+                right: widget.popupSafeArea.right,
+                child: Container(
+                  color:
+                      widget.popupBackgroundColor ?? Theme.of(ctx).canvasColor,
+                  child: _selectDialogInstance(data, defaultHeight: 350),
+                ),
+              );
+            },
+          );
+        });
   }
 
   ///openMenu
