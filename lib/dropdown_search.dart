@@ -2,6 +2,7 @@ library dropdown_search;
 
 import 'dart:async';
 
+import 'package:dropdown_search/src/keyboard_utils/keyboard_utils_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -280,11 +281,20 @@ class DropdownSearch<T> extends StatefulWidget {
 class DropdownSearchState<T> extends State<DropdownSearch<T>> {
   final ValueNotifier<T?> _selectedItemNotifier = ValueNotifier(null);
   final ValueNotifier<bool> _isFocused = ValueNotifier(false);
+  final _keyboard = KeyboardUtilsController();
 
   @override
   void initState() {
     super.initState();
     _selectedItemNotifier.value = widget.selectedItem;
+    _keyboard.addListner();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _keyboard.disposeListner();
   }
 
   @override
@@ -457,35 +467,39 @@ class DropdownSearchState<T> extends State<DropdownSearch<T>> {
       shape: widget.popupShape,
       context: context,
       builder: (ctx) {
-        return AnimatedPadding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.decelerate,
-          child: new Container(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                Container(
-                  color: Colors.transparent, //could change this to Color(0xFF737373),
-                  //so you don't have to change MaterialApp canvasColor
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    decoration: new BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: new BorderRadius.only(
-                        topLeft: Radius.circular(widget.radiusBottomSheet ?? 0),
-                        topRight: Radius.circular(widget.radiusBottomSheet ?? 0),
+        return ValueListenableBuilder(
+          valueListenable: _keyboard.store.keyboardHeigth,
+          builder: (context, isFocused, w) {
+            return AnimatedPadding(
+              padding: EdgeInsets.only(bottom: _keyboard.store.keyboardHeigth.value == 0 ? 0 : _keyboard.store.keyboardHeigth.value),
+              duration: const Duration(milliseconds: 100),
+              curve: Curves.decelerate,
+              child: new Container(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Container(
+                      color: Colors.transparent,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        decoration: new BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: new BorderRadius.only(
+                            topLeft: Radius.circular(widget.radiusBottomSheet ?? 0),
+                            topRight: Radius.circular(widget.radiusBottomSheet ?? 0),
+                          ),
+                        ),
+                        child: Container(
+                          color: Colors.transparent,
+                          child: _selectDialogInstance(data, defaultHeight: 350),
+                        ),
                       ),
                     ),
-                    child: Container(
-                      color: Colors.transparent,
-                      child: _selectDialogInstance(data, defaultHeight: 350),
-                    ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
